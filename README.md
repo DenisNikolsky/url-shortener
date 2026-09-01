@@ -18,10 +18,8 @@ REST API для сокращения URL, написанный на Go.
 - unit-тесты;
 - integration-тесты;
 - HTTP request logging;
-- graceful shutdown;
 - Swagger UI;
 - Docker Compose;
-- автоматическая проверка через GitHub Actions.
 
 ## Стек
 
@@ -32,7 +30,6 @@ REST API для сокращения URL, написанный на Go.
 - **golang-migrate** — database migrations
 - **Swagger** — API documentation
 - **Docker / Docker Compose**
-- **GitHub Actions**
 
 ## Handler
 
@@ -51,7 +48,6 @@ REST API для сокращения URL, написанный на Go.
 - **генерация короткого кода**
 - **создание URL**
 - **получение URL**
-- **увеличение количества переходов**
 ## Repository
 
 Отвечает за взаимодействие с PostgreSQL:
@@ -69,6 +65,7 @@ REST API для сокращения URL, написанный на Go.
 - Go 1.25+
 - Docker
 - Docker Compose
+- Node.js
 
 ### 2. Настройка переменных окружения
 
