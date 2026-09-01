@@ -2,27 +2,32 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/DenisNikolsky/url-shortener/internal/config"
+	"github.com/DenisNikolsky/url-shortener/internal/handler"
 	"github.com/DenisNikolsky/url-shortener/internal/repository"
+	"github.com/DenisNikolsky/url-shortener/internal/service"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	cfg := config.Load()
+	cfg := config.Load(".env")
 
-	db, err := repository.NewPostgresDB(cfg)
+	db, err := repository.NewPostgres(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
+	urlRepository := repository.NewPostgresURLRepository(db)
+
+	urlService := service.NewURLService(urlRepository)
+
+	urlHandler := handler.NewURLHandler(urlService)
+
 	e := echo.New()
 
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
+	urlHandler.RegisterRoutes(e)
 
-	e.Logger.Fatal(e.Start(":" + cfg.ServerPort))
+	e.Logger.Fatal(e.Start(":8080"))
 }

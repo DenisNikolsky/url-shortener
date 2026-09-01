@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/DenisNikolsky/url-shortener/internal/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/DenisNikolsky/url-shortener/internal/config"
 )
 
-func NewPostgresDB(cfg config.Config) (*sql.DB, error) {
+func NewPostgres(cfg config.Config) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DBUser,
 		cfg.DBPassword,
 		cfg.DBHost,
