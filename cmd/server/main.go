@@ -19,8 +19,6 @@ import (
 
 	_ "github.com/DenisNikolsky/url-shortener/docs"
 
-	echoSwagger "github.com/swaggo/echo-swagger"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -36,13 +34,23 @@ func setupServer(cfg config.Config) (*echo.Echo, *sql.DB, error) {
 
 	e := echo.New()
 
-	// HTTP request logging.
-	e.Use(middleware.Logger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{
+			"http://localhost:5173",
+			"http://127.0.0.1:5173",
+		},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+		},
+	}))
 
-	// Swagger UI.
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
-
-	// API routes.
 	urlHandler.RegisterRoutes(e)
 
 	return e, db, nil
