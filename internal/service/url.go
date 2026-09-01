@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"errors"
 	"fmt"
 	"math/big"
@@ -12,6 +13,11 @@ import (
 )
 
 const shortCodeLength = 6
+
+var (
+	ErrInvalidURL  = errors.New("invalid URL")
+	ErrURLNotFound = errors.New("URL not found")
+)
 
 type URLRepository interface {
 	Create(ctx context.Context, url *model.URL) error
@@ -40,15 +46,21 @@ func (s *urlService) Create(
 ) (*model.URL, error) {
 	parsedURL, err := neturl.ParseRequestURI(originalURL)
 	if err != nil {
-		return nil, fmt.Errorf("invalid URL: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidURL, err)
 	}
 
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return nil, errors.New("URL must use http or https")
+		return nil, fmt.Errorf(
+			"%w: URL must use http or https",
+			ErrInvalidURL,
+		)
 	}
 
 	if parsedURL.Host == "" {
-		return nil, errors.New("URL must have a host")
+		return nil, fmt.Errorf(
+			"%w: URL must have a host",
+			ErrInvalidURL,
+		)
 	}
 
 	shortCode, err := generateShortCode(shortCodeLength)
@@ -74,6 +86,10 @@ func (s *urlService) GetByCode(
 ) (*model.URL, error) {
 	url, err := s.repo.GetByCode(ctx, code)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrURLNotFound
+		}
+
 		return nil, fmt.Errorf("get URL by code: %w", err)
 	}
 

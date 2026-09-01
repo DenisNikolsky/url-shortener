@@ -11,5 +11,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
+  postgres-test:
+    image: postgres:18
+    container_name: url-shortener-postgres-test
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+      POSTGRES_USER: ${POSTGRES_TEST_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD}
+    ports:
+      - "${POSTGRES_TEST_PORT}:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql
+
 volumes:
   postgres_data:
+  postgres_test_data:

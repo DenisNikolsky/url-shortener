@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/DenisNikolsky/url-shortener/internal/service"
@@ -41,8 +42,14 @@ func (h *URLHandler) Create(c echo.Context) error {
 		req.URL,
 	)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
+		if errors.Is(err, service.ErrInvalidURL) {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			})
+		}
+
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "internal server error",
 		})
 	}
 
@@ -62,8 +69,14 @@ func (h *URLHandler) Redirect(c echo.Context) error {
 		code,
 	)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": "URL not found",
+		if errors.Is(err, service.ErrURLNotFound) {
+			return c.JSON(http.StatusNotFound, map[string]string{
+				"error": "URL not found",
+			})
+		}
+
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "internal server error",
 		})
 	}
 
