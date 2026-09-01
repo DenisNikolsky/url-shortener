@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/DenisNikolsky/url-shortener/internal/service"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,14 +19,25 @@ func NewURLHandler(service service.URLService) *URLHandler {
 }
 
 type createURLRequest struct {
-	URL string `json:"url"`
+	URL string `json:"url" example:"https://google.com"`
 }
 
 type createURLResponse struct {
-	ShortCode   string `json:"short_code"`
-	OriginalURL string `json:"original_url"`
+	ShortCode   string `json:"short_code" example:"aB3xY7"`
+	OriginalURL string `json:"original_url" example:"https://google.com"`
 }
 
+// Create godoc
+// @Summary Create short URL
+// @Description Creates a short URL for the provided original URL.
+// @Tags URLs
+// @Accept json
+// @Produce json
+// @Param request body createURLRequest true "Original URL"
+// @Success 201 {object} createURLResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /urls [post]
 func (h *URLHandler) Create(c echo.Context) error {
 	var req createURLRequest
 
@@ -61,6 +71,16 @@ func (h *URLHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, response)
 }
 
+// Redirect godoc
+// @Summary Redirect to original URL
+// @Description Redirects the client to the original URL associated with the short code.
+// @Tags URLs
+// @Produce json
+// @Param code path string true "Short URL code" example(aB3xY7)
+// @Success 302
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /{code} [get]
 func (h *URLHandler) Redirect(c echo.Context) error {
 	code := c.Param("code")
 
@@ -83,7 +103,14 @@ func (h *URLHandler) Redirect(c echo.Context) error {
 	return c.Redirect(http.StatusFound, url.OriginalURL)
 }
 
+func (h *URLHandler) Health(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]string{
+		"status": "ok",
+	})
+}
+
 func (h *URLHandler) RegisterRoutes(e *echo.Echo) {
 	e.POST("/urls", h.Create)
+	e.GET("/health", h.Health)
 	e.GET("/:code", h.Redirect)
 }

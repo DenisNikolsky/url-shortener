@@ -281,10 +281,10 @@ func TestURLHandler_Redirect_ServiceError(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if rec.Code != http.StatusNotFound {
+	if rec.Code != http.StatusInternalServerError {
 		t.Fatalf(
 			"expected status %d, got %d",
-			http.StatusNotFound,
+			http.StatusInternalServerError,
 			rec.Code,
 		)
 	}
@@ -322,6 +322,45 @@ func TestURLHandler_Create_ServiceInternalError(t *testing.T) {
 			"expected status %d, got %d",
 			http.StatusInternalServerError,
 			rec.Code,
+		)
+	}
+}
+
+func TestURLHandler_Health(t *testing.T) {
+	e := echo.New()
+
+	handler := NewURLHandler(&mockURLService{})
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/health",
+		nil,
+	)
+
+	rec := httptest.NewRecorder()
+
+	c := e.NewContext(req, rec)
+
+	err := handler.Health(c)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf(
+			"expected status %d, got %d",
+			http.StatusOK,
+			rec.Code,
+		)
+	}
+
+	expectedBody := `{"status":"ok"}`
+
+	if strings.TrimSpace(rec.Body.String()) != expectedBody {
+		t.Fatalf(
+			"expected body %s, got %s",
+			expectedBody,
+			rec.Body.String(),
 		)
 	}
 }

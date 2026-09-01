@@ -50,22 +50,19 @@ func (s *urlService) Create(
 	}
 
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return nil, fmt.Errorf(
-			"%w: URL must use http or https",
-			ErrInvalidURL,
-		)
+		return nil, fmt.Errorf("%w: URL must use http or https", ErrInvalidURL)
 	}
 
 	if parsedURL.Host == "" {
-		return nil, fmt.Errorf(
-			"%w: URL must have a host",
-			ErrInvalidURL,
-		)
+		return nil, fmt.Errorf("%w: URL must have a host", ErrInvalidURL)
 	}
 
 	shortCode, err := generateShortCode(shortCodeLength)
 	if err != nil {
-		return nil, fmt.Errorf("generate short code: %w", err)
+		return nil, fmt.Errorf(
+			"generate short code: %w",
+			err,
+		)
 	}
 
 	urlModel := &model.URL{
@@ -74,7 +71,10 @@ func (s *urlService) Create(
 	}
 
 	if err := s.repo.Create(ctx, urlModel); err != nil {
-		return nil, fmt.Errorf("create URL: %w", err)
+		return nil, fmt.Errorf(
+			"create URL: %w",
+			err,
+		)
 	}
 
 	return urlModel, nil
@@ -94,7 +94,10 @@ func (s *urlService) GetByCode(
 	}
 
 	if err := s.repo.IncrementClicks(ctx, code); err != nil {
-		return nil, fmt.Errorf("increment clicks: %w", err)
+		return nil, fmt.Errorf(
+			"increment clicks: %w",
+			err,
+		)
 	}
 
 	url.Clicks++
@@ -113,7 +116,10 @@ func generateShortCode(length int) (string, error) {
 			big.NewInt(int64(len(alphabet))),
 		)
 		if err != nil {
-			return "", fmt.Errorf("generate random number: %w", err)
+			return "", fmt.Errorf(
+				"generate random number: %w",
+				err,
+			)
 		}
 
 		code[i] = alphabet[n.Int64()]

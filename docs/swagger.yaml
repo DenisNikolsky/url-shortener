@@ -1,0 +1,90 @@
+basePath: /
+definitions:
+  handler.createURLRequest:
+    properties:
+      url:
+        example: https://google.com
+        type: string
+    type: object
+  handler.createURLResponse:
+    properties:
+      original_url:
+        example: https://google.com
+        type: string
+      short_code:
+        example: aB3xY7
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API для сервиса сокращения URL.
+  title: URL Shortener API
+  version: "1.0"
+paths:
+  /{code}:
+    get:
+      description: Redirects the client to the original URL associated with the short
+        code.
+      parameters:
+      - description: Short URL code
+        example: aB3xY7
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Redirect to original URL
+      tags:
+      - URLs
+  /urls:
+    post:
+      consumes:
+      - application/json
+      description: Creates a short URL for the provided original URL.
+      parameters:
+      - description: Original URL
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createURLRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.createURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create short URL
+      tags:
+      - URLs
+swagger: "2.0"

@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/DenisNikolsky/url-shortener/internal/model"
 	"testing"
+
+	"github.com/DenisNikolsky/url-shortener/internal/model"
 )
 
 type mockURLRepository struct {
@@ -50,12 +51,26 @@ func TestURLService_Create(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:  "valid URL",
+			name:  "valid HTTPS URL",
 			input: "https://google.com",
+		},
+		{
+			name:  "valid HTTP URL",
+			input: "http://google.com",
 		},
 		{
 			name:    "invalid URL",
 			input:   "not-a-url",
+			wantErr: true,
+		},
+		{
+			name:    "unsupported scheme",
+			input:   "ftp://google.com",
+			wantErr: true,
+		},
+		{
+			name:    "URL without host",
+			input:   "http:///google.com",
 			wantErr: true,
 		},
 		{
@@ -82,6 +97,23 @@ func TestURLService_Create(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error, got nil")
+				}
+
+				// При ошибке URL repository.Create
+				// не должен вызываться.
+				if tt.repoErr == nil && repo.createdURL != nil {
+					t.Fatal("repository.Create should not be called")
+				}
+
+				if tt.repoErr != nil && repo.createdURL == nil {
+					t.Fatal("repository.Create should be called")
+				}
+
+				if url != nil {
+					t.Fatalf(
+						"expected nil URL, got %+v",
+						url,
+					)
 				}
 
 				return
@@ -113,6 +145,10 @@ func TestURLService_Create(t *testing.T) {
 
 			if repo.createdURL == nil {
 				t.Fatal("repository.Create was not called")
+			}
+
+			if repo.createdURL != url {
+				t.Error("repository received different URL")
 			}
 		})
 	}
@@ -191,6 +227,22 @@ func TestURLService_GetByCode(t *testing.T) {
 						"expected error %v, got %v",
 						tt.wantServiceErr,
 						err,
+					)
+				}
+
+				if url != nil {
+					t.Fatalf(
+						"expected nil URL, got %+v",
+						url,
+					)
+				}
+
+				// Если GetByCode завершился ошибкой,
+				// IncrementClicks вызываться не должен.
+				if tt.getByCodeErr != nil &&
+					repo.incrementedCode != "" {
+					t.Fatal(
+						"IncrementClicks should not be called when GetByCode fails",
 					)
 				}
 
